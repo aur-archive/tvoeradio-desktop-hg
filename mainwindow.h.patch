@@ -1,0 +1,14 @@
+7a8,9
+> #include <QCloseEvent>
+> #include <QtDBus>
+25a28,29
+>     uint notifyid;
+> 
+31a36,37
+>     void saveWindowState();
+>     void restoreWindowState();
+32a39
+>     void notifyDBus(QString artist, QString title);
+35a43,44
+> protected:
+> void closeEvent( QCloseEvent *event);

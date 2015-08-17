@@ -1,0 +1,74 @@
+16a17,21
+>     this->restoreWindowState();
+> 
+>     notifyid = 0;
+>     this->notifyDBus(APP_TITLE, QString::fromUtf8("Добро пожаловать"));
+> 
+85a91,92
+>     connect(qApp->bridge, SIGNAL(track_change(QString,QString)), this, SLOT(notifyDBus(QString,QString)));
+> 
+113a121,123
+>     if (this->isVisible()) {
+>        this->saveWindowState();
+>     }
+117a128,135
+> void MainWindow::closeEvent(QCloseEvent *event)
+>  {
+>     if (this->isVisible()) {
+>        this->saveWindowState();
+>     }
+>     event->accept();
+>  }
+> 
+121a140,154
+>     this->restoreWindowState();
+> }
+> 
+> void MainWindow::saveWindowState()
+> {
+>     QSettings settings;
+>     settings.setValue("mainWindowGeometry", saveGeometry());
+>     settings.setValue("mainWindowState", saveState());
+> }
+> 
+> void MainWindow::restoreWindowState()
+> {
+>     QSettings settings;
+>     restoreGeometry(settings.value("mainWindowGeometry").toByteArray());
+>     restoreState(settings.value("mainWindowState").toByteArray());
+126,127c159,166
+<     if (QSystemTrayIcon::Trigger == reason)
+<         this->showAndRaise();
+---
+>      if (QSystemTrayIcon::Trigger == reason) {
+>         if (this->isVisible()) {
+>            this->saveWindowState();
+>            this->hide();
+>         } else {
+>            this->showAndRaise();
+>         }
+>      }
+137a177,199
+> }
+> 
+> void MainWindow::notifyDBus(QString artist, QString title)
+> {
+>     QSettings settings;
+>     if (settings.value("Interface/NotificationsDBus", true).toBool()) {
+>         QDBusInterface notifydbus("org.freedesktop.Notifications", "/org/freedesktop/Notifications", "org.freedesktop.Notifications", QDBusConnection::sessionBus());
+>         QVariantList args;
+>         QVariantMap hints;
+>         hints.insert("urgency", 0);
+>         hints.insert("desktop-entry", APP_NAME);
+>         hints.insert("suppress-sound", true);
+>         args << QString(APP_NAME);
+>         args << notifyid;
+>         args << QString();
+>         args << QString(artist+" - "+title);
+>         args << QString();
+>         args << QStringList();
+>         args << hints;
+>         args << 2000;
+>         QDBusMessage reply = notifydbus.callWithArgumentList(QDBus::AutoDetect, "Notify", args);
+>         notifyid = reply.arguments().last().toInt();
+>     }
